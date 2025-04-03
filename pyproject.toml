@@ -1,0 +1,19 @@
+[project]
+name = "tesseral-fastapi"
+version = "0.1.0"
+description = "Tesseral SDK for FastAPI"
+readme = "README.md"
+authors = [
+    { name = "Ulysse Carion", email = "ulysse.carion@tesseral.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "httpx>=0.28.1",
+    "starlette>=0.46.1",
+    "tesseral-sdk>=0.0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
