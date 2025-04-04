@@ -21,7 +21,7 @@ def _extract_auth_context(name: str) -> _AuthContext:
 
 
 def organization_id() -> str:
-    return _extract_auth_context("organization_id").access_token_claims.organization.id
+    return _extract_auth_context("organization_id").access_token_claims.organization.id  # type: ignore[union-attr,return-value]
 
 
 def access_token_claims() -> AccessTokenClaims:
