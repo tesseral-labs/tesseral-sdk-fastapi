@@ -51,7 +51,7 @@ class RequireAuthMiddleware:
             auth_context = _AuthContext()
             auth_context.access_token = access_token
             auth_context.access_token_claims = access_token_claims
-        except:
+        except:  # noqa: E722
             response = PlainTextResponse("Unauthorized\n", status_code=401)
             await response(scope, receive, send)
             return
