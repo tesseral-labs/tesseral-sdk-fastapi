@@ -6,8 +6,7 @@ from starlette.responses import PlainTextResponse
 from starlette.types import ASGIApp, Scope, Receive, Send
 from tesseral.access_tokens import AsyncAccessTokenAuthenticator
 
-from .context import _AuthContext
-
+from .context import _AuthContext, _auth_context_var
 
 _PREFIX_BEARER = "Bearer "
 
@@ -50,15 +49,16 @@ class RequireAuthMiddleware:
             )
 
             auth_context = _AuthContext()
-            auth_context._access_token = access_token
-            auth_context._access_token_claims = access_token_claims
+            auth_context.access_token = access_token
+            auth_context.access_token_claims = access_token_claims
         except:
             response = PlainTextResponse("Unauthorized\n", status_code=401)
             await response(scope, receive, send)
             return
 
-        scope["tesseral_auth"] = auth_context
+        token = _auth_context_var.set(auth_context)
         await self.app(scope, receive, send)
+        _auth_context_var.reset(token)
 
     def _access_token(self, request: Request, project_id: str) -> str:
         auth_header = request.headers.get("authorization")
