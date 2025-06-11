@@ -75,24 +75,24 @@ def _authenticate_access_token(
 ) -> AccessTokenClaims:
     parts = access_token.split(".")
     if len(parts) != 3:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     raw_header, raw_claims, raw_signature = parts
     try:
         parsed_header = _AccessTokenHeader.model_validate_json(_base64_url_decode(raw_header))
         parsed_signature = _base64_url_decode(raw_signature)
     except binascii.Error:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
     except ValidationError:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     try:
         public_key = jwks[parsed_header.kid]
     except KeyError:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     if len(parsed_signature) != 64:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     r = int.from_bytes(parsed_signature[:32], byteorder="big")
     s = int.from_bytes(parsed_signature[32:], byteorder="big")
@@ -100,24 +100,24 @@ def _authenticate_access_token(
     try:
         public_key.verify(signature, (raw_header + "." + raw_claims).encode(), ECDSA(SHA256()))
     except InvalidSignature:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     try:
         claims_json = json.loads(_base64_url_decode(raw_claims))
         parsed_claims = parse_obj_as(type_=AccessTokenClaims, object_=claims_json)
     except binascii.Error:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
     except ValidationError:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     if now_unix_seconds is None:
         now_unix_seconds = time.time()
 
     # type assertions to appease mypy
-    assert parsed_claims.nbf, _InvalidAccessTokenException()
-    assert parsed_claims.exp, _InvalidAccessTokenException()
+    assert parsed_claims.nbf, InvalidAccessTokenException()
+    assert parsed_claims.exp, InvalidAccessTokenException()
     if now_unix_seconds < parsed_claims.nbf or now_unix_seconds > parsed_claims.exp:
-        raise _InvalidAccessTokenException()
+        raise InvalidAccessTokenException()
 
     return parsed_claims
 

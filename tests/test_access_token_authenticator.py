@@ -1,12 +1,10 @@
-import json
 import unittest
 
 import pytest
-
 from tesseral import AccessTokenClaims
-from tesseral_fastapi._access_token_authenticator import _parse_config, _authenticate_access_token, \
-    _InvalidAccessTokenException
 from tesseral.core import parse_obj_as
+
+from tesseral_fastapi._access_token_authenticator import _parse_config, _authenticate_access_token, InvalidAccessTokenException
 
 access_token_test_cases = [
     {
@@ -135,7 +133,7 @@ class TestAccessTokenAuthenticator(unittest.TestCase):
                                                   now_unix_seconds=test_case["nowUnixSeconds"]) == parse_obj_as(
                     type_=AccessTokenClaims, object_=test_case["claims"])
             else:
-                with pytest.raises(_InvalidAccessTokenException):
+                with pytest.raises(InvalidAccessTokenException):
                     assert _authenticate_access_token(jwks=config.jwks, access_token=test_case["accessToken"],
                                                       now_unix_seconds=test_case["nowUnixSeconds"])
 
