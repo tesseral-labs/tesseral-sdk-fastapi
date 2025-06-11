@@ -19,7 +19,7 @@ from tesseral.core import parse_obj_as
 from tesseral.types.access_token_claims import AccessTokenClaims
 
 
-class _InvalidAccessTokenException(Exception):
+class InvalidAccessTokenException(Exception):
     pass
 
 

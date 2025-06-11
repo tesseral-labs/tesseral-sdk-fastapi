@@ -6,10 +6,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from tesseral import AsyncTesseral, BadRequestError
-from tesseral.access_tokens import AccessTokenAuthenticator, _InvalidAccessTokenException, AsyncAccessTokenAuthenticator
 
-from tesseral_fastapi._auth import Auth
-from tesseral_fastapi._credentials import is_jwt_format, is_api_key_format
+from ._access_token_authenticator import AsyncAccessTokenAuthenticator, InvalidAccessTokenException
+from ._auth import Auth
+from ._credentials import is_jwt_format, is_api_key_format
 
 
 class RequireAuthMiddleware(BaseHTTPMiddleware):
@@ -57,7 +57,7 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
                         access_token=credential
                     )
                 )
-            except _InvalidAccessTokenException:
+            except InvalidAccessTokenException:
                 return JSONResponse({"error": "Unauthorized"}, status_code=401)
             except Exception as e:
                 raise e
