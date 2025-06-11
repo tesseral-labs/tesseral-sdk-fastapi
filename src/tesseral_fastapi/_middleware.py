@@ -13,6 +13,29 @@ from ._credentials import is_jwt_format, is_api_key_format
 
 
 class RequireAuthMiddleware(BaseHTTPMiddleware):
+    """
+    FastAPI/Starlette middleware that authenticates requests.
+
+    Unauthenticated requests receive a 401 Unauthenticated error.
+
+    Authenticated requests carry authentication data, which you can extract by
+    having your handler take an argument annotated with Depends(get_auth).
+    Requests will be required to be authenticated even if you do not extract an
+    Auth instance in your handler.
+
+    Args:
+        app: The FastAPI/Starlette application to wrap with this middleware.
+        publishable_key: The Tesseral publishable key for your project.
+        config_api_hostname: The hostname of the Tesseral config API. Defaults to "config.tesseral.com".
+        jwks_refresh_interval_seconds: How often to refresh the JWKS cache, in seconds. Defaults to 3600 (1 hour).
+        http_client: Optional custom HTTPX client to use for requests. If not provided, a new client will be created.
+        api_keys_enabled: Whether to enable API key authentication. Defaults to False.
+        tesseral_client: Optional AsyncTesseral client to use for API key authentication. If not provided and
+            api_keys_enabled is True, a new client will be created using the TESSERAL_BACKEND_API_KEY environment variable.
+
+    Raises:
+        RuntimeError: If api_keys_enabled is True but neither tesseral_client nor TESSERAL_BACKEND_API_KEY is provided.
+    """
     def __init__(
             self,
             app,
@@ -85,6 +108,22 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
 
 
 def get_auth(request: Request) -> Auth:
+    """
+    Retrieves the Auth instance from the request.
+
+    This function is intended to be used with FastAPI's Depends to inject
+    an Auth instance into route handlers. The Auth instance is created by
+    RequireAuthMiddleware.
+
+    Args:
+        request: The FastAPI/Starlette request object.
+
+    Returns:
+        Auth: The Auth instance containing authentication information.
+
+    Raises:
+        RuntimeError: If called outside RequireAuthMiddleware.
+    """
     try:
         return request.state._tesseral_auth
     except KeyError:
