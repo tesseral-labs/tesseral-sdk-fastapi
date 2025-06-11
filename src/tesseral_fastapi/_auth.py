@@ -43,6 +43,7 @@ class Auth:
         if self._access_token_claims:
             return self._access_token_claims.organization.id
         if self._authenticate_api_key_response:
+            assert self._authenticate_api_key_response.organization_id  # appease mypy
             return self._authenticate_api_key_response.organization_id
         raise RuntimeError("Unreachable")
 

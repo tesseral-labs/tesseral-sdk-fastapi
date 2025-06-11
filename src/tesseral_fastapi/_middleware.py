@@ -1,7 +1,7 @@
 from os import environ
 from typing import Optional
 
-from httpx import Client
+from httpx import Client, AsyncClient
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
@@ -28,7 +28,7 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
         publishable_key: The Tesseral publishable key for your project.
         config_api_hostname: The hostname of the Tesseral config API. Defaults to "config.tesseral.com".
         jwks_refresh_interval_seconds: How often to refresh the JWKS cache, in seconds. Defaults to 3600 (1 hour).
-        http_client: Optional custom HTTPX client to use for requests. If not provided, a new client will be created.
+        http_client: Optional custom httpx.AsyncClient to use for requests. If not provided, a new client will be created.
         api_keys_enabled: Whether to enable API key authentication. Defaults to False.
         tesseral_client: Optional AsyncTesseral client to use for API key authentication. If not provided and
             api_keys_enabled is True, a new client will be created using the TESSERAL_BACKEND_API_KEY environment variable.
@@ -36,6 +36,7 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
     Raises:
         RuntimeError: If api_keys_enabled is True but neither tesseral_client nor TESSERAL_BACKEND_API_KEY is provided.
     """
+
     def __init__(
             self,
             app,
@@ -43,7 +44,7 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
             publishable_key,
             config_api_hostname="config.tesseral.com",
             jwks_refresh_interval_seconds: int = 3600,
-            http_client: Optional[Client] = None,
+            http_client: Optional[AsyncClient] = None,
             api_keys_enabled: bool = False,
             tesseral_client: Optional[AsyncTesseral] = None,
     ):
@@ -60,7 +61,7 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
         self.publishable_key = publishable_key
         self.config_api_hostname = config_api_hostname
         self.jwks_refresh_interval_seconds = jwks_refresh_interval_seconds
-        self.http_client = http_client
+        self.http_client = http_client or AsyncClient()
         self.api_keys_enabled = api_keys_enabled
         self.tesseral_client = tesseral_client or AsyncTesseral()
 
@@ -92,7 +93,8 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         elif self.api_keys_enabled and is_api_key_format(credential):
             try:
-                authenticate_api_key_response = self.tesseral_client.api_keys.authenticate_api_key(secret_token=credential)
+                authenticate_api_key_response = await self.tesseral_client.api_keys.authenticate_api_key(
+                    secret_token=credential)
             except BadRequestError:
                 return JSONResponse({"error": "Unauthorized"}, status_code=401)
             except Exception as e:
@@ -127,7 +129,8 @@ def get_auth(request: Request) -> Auth:
     try:
         return request.state._tesseral_auth
     except KeyError:
-        raise RuntimeError("Called tesseral_fastapi.get_auth() outside of an authenticated request. Did you forget to use RequireAuthMiddleware?")
+        raise RuntimeError(
+            "Called tesseral_fastapi.get_auth() outside of an authenticated request. Did you forget to use RequireAuthMiddleware?")
 
 
 _PREFIX_BEARER = "Bearer "
