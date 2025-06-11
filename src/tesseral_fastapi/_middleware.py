@@ -1,7 +1,7 @@
 from os import environ
 from typing import Optional
 
-from httpx import Client, AsyncClient
+from httpx import AsyncClient
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
