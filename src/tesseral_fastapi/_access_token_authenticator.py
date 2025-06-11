@@ -56,22 +56,32 @@ class AsyncAccessTokenAuthenticator:
         self, *, access_token: str, now_unix_seconds: Optional[float] = None
     ) -> AccessTokenClaims:
         await self._update_config()
-        return _authenticate_access_token(jwks=self._jwks, access_token=access_token, now_unix_seconds=now_unix_seconds)
+        return _authenticate_access_token(
+            jwks=self._jwks,
+            access_token=access_token,
+            now_unix_seconds=now_unix_seconds,
+        )
 
     async def _update_config(self):
         if time.time() < self._jwks_next_refresh_unix_seconds:
             return
 
-        response = await self._http_client.get(f"https://{self._config_api_hostname}/v1/config/{self._publishable_key}")
+        response = await self._http_client.get(
+            f"https://{self._config_api_hostname}/v1/config/{self._publishable_key}"
+        )
         response.raise_for_status()
         config = _parse_config(response.text)
         self._project_id = config.project_id
         self._jwks = config.jwks
-        self._jwks_next_refresh_unix_seconds = time.time() + self._jwks_refresh_interval_seconds
+        self._jwks_next_refresh_unix_seconds = (
+            time.time() + self._jwks_refresh_interval_seconds
+        )
 
 
 def _authenticate_access_token(
-    jwks: Dict[str, EllipticCurvePublicKey], access_token: str, now_unix_seconds: Optional[float] = None
+    jwks: Dict[str, EllipticCurvePublicKey],
+    access_token: str,
+    now_unix_seconds: Optional[float] = None,
 ) -> AccessTokenClaims:
     parts = access_token.split(".")
     if len(parts) != 3:
@@ -79,7 +89,9 @@ def _authenticate_access_token(
 
     raw_header, raw_claims, raw_signature = parts
     try:
-        parsed_header = _AccessTokenHeader.model_validate_json(_base64_url_decode(raw_header))
+        parsed_header = _AccessTokenHeader.model_validate_json(
+            _base64_url_decode(raw_header)
+        )
         parsed_signature = _base64_url_decode(raw_signature)
     except binascii.Error:
         raise InvalidAccessTokenException()
@@ -98,7 +110,9 @@ def _authenticate_access_token(
     s = int.from_bytes(parsed_signature[32:], byteorder="big")
     signature = encode_dss_signature(r, s)
     try:
-        public_key.verify(signature, (raw_header + "." + raw_claims).encode(), ECDSA(SHA256()))
+        public_key.verify(
+            signature, (raw_header + "." + raw_claims).encode(), ECDSA(SHA256())
+        )
     except InvalidSignature:
         raise InvalidAccessTokenException()
 
@@ -136,7 +150,9 @@ def _parse_config(config_json: str) -> _Config:
 
         x = int.from_bytes(_base64_url_decode(json_web_key.x), byteorder="big")
         y = int.from_bytes(_base64_url_decode(json_web_key.y), byteorder="big")
-        public_key = EllipticCurvePublicNumbers(curve=SECP256R1(), x=x, y=y).public_key()
+        public_key = EllipticCurvePublicNumbers(
+            curve=SECP256R1(), x=x, y=y
+        ).public_key()
         jwks[json_web_key.kid] = public_key
 
     config = _Config()

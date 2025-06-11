@@ -7,7 +7,10 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 from tesseral import AsyncTesseral, BadRequestError
 
-from ._access_token_authenticator import AsyncAccessTokenAuthenticator, InvalidAccessTokenException
+from ._access_token_authenticator import (
+    AsyncAccessTokenAuthenticator,
+    InvalidAccessTokenException,
+)
 from ._auth import Auth
 from ._credentials import is_jwt_format, is_api_key_format
 
@@ -38,20 +41,20 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
     """
 
     def __init__(
-            self,
-            app,
-            *,
-            publishable_key,
-            config_api_hostname="config.tesseral.com",
-            jwks_refresh_interval_seconds: int = 3600,
-            http_client: Optional[AsyncClient] = None,
-            api_keys_enabled: bool = False,
-            tesseral_client: Optional[AsyncTesseral] = None,
+        self,
+        app,
+        *,
+        publishable_key,
+        config_api_hostname="config.tesseral.com",
+        jwks_refresh_interval_seconds: int = 3600,
+        http_client: Optional[AsyncClient] = None,
+        api_keys_enabled: bool = False,
+        tesseral_client: Optional[AsyncTesseral] = None,
     ):
         if (
-                api_keys_enabled
-                and not tesseral_client
-                and "TESSERAL_BACKEND_API_KEY" not in environ
+            api_keys_enabled
+            and not tesseral_client
+            and "TESSERAL_BACKEND_API_KEY" not in environ
         ):
             raise RuntimeError(
                 "If you set api_keys_enabled to true, then you must either provide a tesseral_client or you must set a TESSERAL_BACKEND_API_KEY environment variable."
@@ -73,7 +76,9 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
         )
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        credential = _credential(request, await self.access_token_authenticator.project_id())
+        credential = _credential(
+            request, await self.access_token_authenticator.project_id()
+        )
         if is_jwt_format(credential):
             try:
                 access_token_claims = (
@@ -93,8 +98,11 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         elif self.api_keys_enabled and is_api_key_format(credential):
             try:
-                authenticate_api_key_response = await self.tesseral_client.api_keys.authenticate_api_key(
-                    secret_token=credential)
+                authenticate_api_key_response = (
+                    await self.tesseral_client.api_keys.authenticate_api_key(
+                        secret_token=credential
+                    )
+                )
             except BadRequestError:
                 return JSONResponse({"error": "Unauthorized"}, status_code=401)
             except Exception as e:
@@ -130,7 +138,8 @@ def get_auth(request: Request) -> Auth:
         return request.state._tesseral_auth
     except KeyError:
         raise RuntimeError(
-            "Called tesseral_fastapi.get_auth() outside of an authenticated request. Did you forget to use RequireAuthMiddleware?")
+            "Called tesseral_fastapi.get_auth() outside of an authenticated request. Did you forget to use RequireAuthMiddleware?"
+        )
 
 
 _PREFIX_BEARER = "Bearer "
@@ -139,7 +148,7 @@ _PREFIX_BEARER = "Bearer "
 def _credential(request: Request, project_id: str) -> str:
     auth_header = request.headers.get("authorization")
     if auth_header and auth_header.startswith(_PREFIX_BEARER):
-        return auth_header[len(_PREFIX_BEARER):]
+        return auth_header[len(_PREFIX_BEARER) :]
 
     cookie_name = f"tesseral_{project_id}_access_token"
     if cookie_name in request.cookies:

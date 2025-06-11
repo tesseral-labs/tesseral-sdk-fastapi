@@ -15,6 +15,7 @@ class Auth:
     Auth instances require RequireAuthMiddleware to be added to the FastAPI app
     and should be acquired using Depends(get_auth) in FastAPI route handlers.
     """
+
     _access_token: Optional[str]
     _access_token_claims: Optional[AccessTokenClaims]
     _api_key_secret_token: Optional[str]

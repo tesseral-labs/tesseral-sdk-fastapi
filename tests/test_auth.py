@@ -32,24 +32,16 @@ class TestAuth(unittest.TestCase):
         auth._access_token_claims = parse_obj_as(
             type_=AccessTokenClaims,
             object_={
-                "organization": {
-                    "id": "org_123",
-                    "displayName": "Test Organization"
-                },
-                "user": {
-                    "id": "user_123",
-                    "email": "test@example.com"
-                },
-                "session": {
-                    "id": "session_123"
-                },
+                "organization": {"id": "org_123", "displayName": "Test Organization"},
+                "user": {"id": "user_123", "email": "test@example.com"},
+                "session": {"id": "session_123"},
                 "iss": "https://example.com",
                 "sub": "user_123",
                 "aud": "https://example.com",
                 "exp": 1741195468,
                 "nbf": 1741195168,
-                "iat": 1741195168
-            }
+                "iat": 1741195168,
+            },
         )
         auth._authenticate_api_key_response = None
         self.assertEqual(auth.organization_id(), "org_123")
@@ -60,10 +52,7 @@ class TestAuth(unittest.TestCase):
         auth._api_key_secret_token = "api_key_456"
         auth._access_token_claims = None
         auth._authenticate_api_key_response = parse_obj_as(
-            type_=AuthenticateApiKeyResponse,
-            object_={
-                "organization_id": "org_456"
-            }
+            type_=AuthenticateApiKeyResponse, object_={"organization_id": "org_456"}
         )
         self.assertEqual(auth.organization_id(), "org_456")
 
@@ -74,24 +63,16 @@ class TestAuth(unittest.TestCase):
         claims = parse_obj_as(
             type_=AccessTokenClaims,
             object_={
-                "organization": {
-                    "id": "org_123",
-                    "displayName": "Test Organization"
-                },
-                "user": {
-                    "id": "user_123",
-                    "email": "test@example.com"
-                },
-                "session": {
-                    "id": "session_123"
-                },
+                "organization": {"id": "org_123", "displayName": "Test Organization"},
+                "user": {"id": "user_123", "email": "test@example.com"},
+                "session": {"id": "session_123"},
                 "iss": "https://example.com",
                 "sub": "user_123",
                 "aud": "https://example.com",
                 "exp": 1741195468,
                 "nbf": 1741195168,
-                "iat": 1741195168
-            }
+                "iat": 1741195168,
+            },
         )
         auth._access_token_claims = claims
         auth._authenticate_api_key_response = None
@@ -103,10 +84,7 @@ class TestAuth(unittest.TestCase):
         auth._api_key_secret_token = "api_key_456"
         auth._access_token_claims = None
         auth._authenticate_api_key_response = parse_obj_as(
-            type_=AuthenticateApiKeyResponse,
-            object_={
-                "organization_id": "org_456"
-            }
+            type_=AuthenticateApiKeyResponse, object_={"organization_id": "org_456"}
         )
         with pytest.raises(NotAnAccessTokenError):
             auth.access_token_claims()
@@ -134,25 +112,17 @@ class TestAuth(unittest.TestCase):
         auth._access_token_claims = parse_obj_as(
             type_=AccessTokenClaims,
             object_={
-                "organization": {
-                    "id": "org_123",
-                    "displayName": "Test Organization"
-                },
-                "user": {
-                    "id": "user_123",
-                    "email": "test@example.com"
-                },
-                "session": {
-                    "id": "session_123"
-                },
+                "organization": {"id": "org_123", "displayName": "Test Organization"},
+                "user": {"id": "user_123", "email": "test@example.com"},
+                "session": {"id": "session_123"},
                 "actions": ["a.b.c", "d.e.f"],
                 "iss": "https://example.com",
                 "sub": "user_123",
                 "aud": "https://example.com",
                 "exp": 1741195468,
                 "nbf": 1741195168,
-                "iat": 1741195168
-            }
+                "iat": 1741195168,
+            },
         )
         auth._authenticate_api_key_response = None
         self.assertTrue(auth.has_permission("a.b.c"))
@@ -169,7 +139,7 @@ class TestAuth(unittest.TestCase):
             object_={
                 "organization_id": "org_456",
                 "actions": ["a.b.c", "d.e.f"],
-            }
+            },
         )
         self.assertTrue(auth.has_permission("a.b.c"))
         self.assertTrue(auth.has_permission("d.e.f"))
@@ -182,25 +152,17 @@ class TestAuth(unittest.TestCase):
         auth._access_token_claims = parse_obj_as(
             type_=AccessTokenClaims,
             object_={
-                "organization": {
-                    "id": "org_123",
-                    "displayName": "Test Organization"
-                },
-                "user": {
-                    "id": "user_123",
-                    "email": "test@example.com"
-                },
-                "session": {
-                    "id": "session_123"
-                },
+                "organization": {"id": "org_123", "displayName": "Test Organization"},
+                "user": {"id": "user_123", "email": "test@example.com"},
+                "session": {"id": "session_123"},
                 "actions": None,
                 "iss": "https://example.com",
                 "sub": "user_123",
                 "aud": "https://example.com",
                 "exp": 1741195468,
                 "nbf": 1741195168,
-                "iat": 1741195168
-            }
+                "iat": 1741195168,
+            },
         )
         auth._authenticate_api_key_response = None
         self.assertFalse(auth.has_permission("a.b.c"))
@@ -215,7 +177,7 @@ class TestAuth(unittest.TestCase):
             object_={
                 "organization_id": "org_456",
                 "actions": None,
-            }
+            },
         )
         self.assertFalse(auth.has_permission("a.b.c"))
 
