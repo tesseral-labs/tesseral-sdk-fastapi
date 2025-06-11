@@ -94,6 +94,8 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
             auth = Auth()
             auth._access_token = credential
             auth._access_token_claims = access_token_claims
+            auth._api_key_secret_token = None
+            auth._authenticate_api_key_response = None
             request.state._tesseral_auth = auth
             return await call_next(request)
         elif self.api_keys_enabled and is_api_key_format(credential):
@@ -109,6 +111,8 @@ class RequireAuthMiddleware(BaseHTTPMiddleware):
                 raise e
 
             auth = Auth()
+            auth._access_token = None
+            auth._access_token_claims = None
             auth._api_key_secret_token = credential
             auth._authenticate_api_key_response = authenticate_api_key_response
             request.state._tesseral_auth = auth
