@@ -127,7 +127,7 @@ class TestAuth(unittest.TestCase):
         auth._authenticate_api_key_response = None
         self.assertEqual(auth.credentials(), "api_key_456")
 
-    def test_has_permission_with_access_token_allowed(self):
+    def test_has_permission_with_access_token(self):
         auth = Auth()
         auth._access_token = "access_token_123"
         auth._api_key_secret_token = None
@@ -145,7 +145,7 @@ class TestAuth(unittest.TestCase):
                 "session": {
                     "id": "session_123"
                 },
-                "actions": ["read", "write"],
+                "actions": ["a.b.c", "d.e.f"],
                 "iss": "https://example.com",
                 "sub": "user_123",
                 "aud": "https://example.com",
@@ -155,39 +155,11 @@ class TestAuth(unittest.TestCase):
             }
         )
         auth._authenticate_api_key_response = None
-        self.assertTrue(auth.has_permission("read"))
+        self.assertTrue(auth.has_permission("a.b.c"))
+        self.assertTrue(auth.has_permission("d.e.f"))
+        self.assertFalse(auth.has_permission("g.h.i"))
 
-    def test_has_permission_with_access_token_not_allowed(self):
-        auth = Auth()
-        auth._access_token = "access_token_123"
-        auth._api_key_secret_token = None
-        auth._access_token_claims = parse_obj_as(
-            type_=AccessTokenClaims,
-            object_={
-                "organization": {
-                    "id": "org_123",
-                    "displayName": "Test Organization"
-                },
-                "user": {
-                    "id": "user_123",
-                    "email": "test@example.com"
-                },
-                "session": {
-                    "id": "session_123"
-                },
-                "actions": ["read", "write"],
-                "iss": "https://example.com",
-                "sub": "user_123",
-                "aud": "https://example.com",
-                "exp": 1741195468,
-                "nbf": 1741195168,
-                "iat": 1741195168
-            }
-        )
-        auth._authenticate_api_key_response = None
-        self.assertFalse(auth.has_permission("delete"))
-
-    def test_has_permission_with_api_key_allowed(self):
+    def test_has_permission_with_api_key(self):
         auth = Auth()
         auth._access_token = None
         auth._api_key_secret_token = "api_key_456"
@@ -196,24 +168,12 @@ class TestAuth(unittest.TestCase):
             type_=AuthenticateApiKeyResponse,
             object_={
                 "organization_id": "org_456",
-                "actions": ["read"]
+                "actions": ["a.b.c", "d.e.f"],
             }
         )
-        self.assertTrue(auth.has_permission("read"))
-
-    def test_has_permission_with_api_key_not_allowed(self):
-        auth = Auth()
-        auth._access_token = None
-        auth._api_key_secret_token = "api_key_456"
-        auth._access_token_claims = None
-        auth._authenticate_api_key_response = parse_obj_as(
-            type_=AuthenticateApiKeyResponse,
-            object_={
-                "organization_id": "org_456",
-                "actions": ["read"]
-            }
-        )
-        self.assertFalse(auth.has_permission("write"))
+        self.assertTrue(auth.has_permission("a.b.c"))
+        self.assertTrue(auth.has_permission("d.e.f"))
+        self.assertFalse(auth.has_permission("g.h.i"))
 
     def test_has_permission_with_empty_actions(self):
         auth = Auth()
@@ -243,7 +203,21 @@ class TestAuth(unittest.TestCase):
             }
         )
         auth._authenticate_api_key_response = None
-        self.assertFalse(auth.has_permission("read"))
+        self.assertFalse(auth.has_permission("a.b.c"))
+
+    def test_has_permission_with_empty_actions_api_key(self):
+        auth = Auth()
+        auth._access_token = None
+        auth._api_key_secret_token = "api_key_456"
+        auth._access_token_claims = None
+        auth._authenticate_api_key_response = parse_obj_as(
+            type_=AuthenticateApiKeyResponse,
+            object_={
+                "organization_id": "org_456",
+                "actions": None,
+            }
+        )
+        self.assertFalse(auth.has_permission("a.b.c"))
 
 
 if __name__ == "__main__":
